@@ -1,0 +1,20 @@
+name: "scroll_animator"
+version: "0.1.0"
+description: "A Flutter package that provides smooth, animated scrolling for pointer-based input devices, such as mouse wheels and trackpads."
+repository: "https://github.com/kszczek/scroll_animator"
+issue_tracker: "https://github.com/kszczek/scroll_animator/issues"
+
+# TODO(kszczek): loosen up version constraints
+environment:
+  sdk: "^3.5.3"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: "flutter"
+
+dev_dependencies:
+  flutter_test:
+    sdk: "flutter"
+  # When updating this package, you must also audit the ruleset in analysis_options.yaml!
+  lints: "^5.0.0"
