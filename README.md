@@ -34,7 +34,7 @@ class _ScrollAnimatorExample extends StatefulWidget {
 }
 
 class _ScrollAnimatorExampleState extends State<_ScrollAnimatorExample> {
-  late final AnimatedScrollController _scrollController;
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
