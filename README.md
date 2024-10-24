@@ -87,4 +87,5 @@ trackpads can produce larger, less frequent deltas, similar to mouse wheels.
 Therefore, this package handles all scroll inputs without making assumptions
 based on the pointer type.
 
-See [this Chromium bug](http://crbug.com/545234) for discussion on this topic.
+See [this Chromium bug](https://issues.chromium.org/41210665) for discussion
+on this topic.
