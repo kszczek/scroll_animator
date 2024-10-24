@@ -3,6 +3,8 @@ input devices, such as mouse wheels and trackpads. It includes some widely used
 scroll animations that can be used out of the box, while also offering
 the flexibility to implement custom scroll animations.
 
+![A side-by-side comparison: on the left, the default scroll behavior, and on the right, the scrolling is smoothed using the ChromiumEaseInOut animation.](https://raw.githubusercontent.com/kszczek/scroll_animator/2565cad263190080dc89c7766d1ee0a882ccaed4/doc/ease_in_out.gif)
+
 ## Usage
 
 To use this package, create an instance of `AnimatedScrollController` with your
