@@ -1,3 +1,7 @@
+/// A Flutter package that provides smooth, animated scrolling for pointer-based
+/// input devices, such as mouse wheels and trackpads.
+library;
+
 export 'package:scroll_animator/src/animated_scroll_activity.dart'
     show AnimatedScrollActivity;
 export 'package:scroll_animator/src/animated_scroll_controller.dart'
