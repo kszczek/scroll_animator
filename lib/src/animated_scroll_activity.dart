@@ -81,7 +81,9 @@ class AnimatedScrollActivity extends ScrollActivity {
         : (velocity < 0 ? ScrollDirection.forward : ScrollDirection.reverse);
     if (scrollDirection != _lastScrollDirection) {
       _lastScrollDirection = scrollDirection;
+      if (scrollDirection != ScrollDirection.idle) {
       _onDirectionChanged?.call(scrollDirection);
+      }
     }
     final overscroll = delegate.setPixels(offset.dy);
     if ((overscroll != 0.0 || done) && !_isDisposed) {
