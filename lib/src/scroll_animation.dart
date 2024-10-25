@@ -2,6 +2,24 @@ import 'dart:ui';
 
 import 'package:scroll_animator/src/chromium/scroll_offset_animation_curve.dart';
 
+/// Defines sources of scroll events.
+///
+/// Used primarily by [ScrollAnimationFactory] to tailor animations based on the
+/// origin of a scroll event, making animations feel more natural for each type.
+enum ScrollType {
+  /// A scroll event triggered programmatically.
+  ///
+  /// Programmatic scrolls are initiated by code, often in response to user
+  /// actions like tapping a "scroll to top" button.
+  programmatic,
+
+  /// A scroll event triggered by keyboard input, typically arrow keys.
+  keyboard,
+
+  /// A scroll event triggered by a pointer device, such as a mouse or trackpad.
+  pointer,
+}
+
 /// An abstract class representing an animation curve for scrolling.
 ///
 /// A scroll animation instance defines the duration and target value of the
@@ -53,14 +71,18 @@ abstract class ScrollAnimation {
 abstract class ScrollAnimationFactory {
   /// Creates a new [ScrollAnimation] instance.
   ///
-  /// Initializes a scroll animation from the [initialValue] (the current scroll
-  /// offset) to the [targetValue] (the desired scroll offset). This method is
-  /// typically used to start a new animation. For animations that are already
-  /// running, prefer [ScrollAnimation.updateTargetValue] to smoothly adjust the
-  /// target value.
+  /// Initializes a scroll animation from the [initialValue] (current scroll
+  /// offset) to the [targetValue] (desired scroll offset). The [scrollType]
+  /// parameter provides information on the source of the scroll event,
+  /// allowing implementations to customize the animation duration or behavior
+  /// accordingly.
+  ///
+  /// Use this method to start new animations. For running animations, use
+  /// [ScrollAnimation.updateTargetValue] to smoothly adjust the target.
   ScrollAnimation createScrollAnimation(
     final Offset initialValue,
     final Offset targetValue,
+    final ScrollType scrollType,
   );
 }
 
@@ -94,7 +116,14 @@ class _ChromiumScrollAnimation implements ScrollAnimation {
 /// cubic Bézier curve. The animation is characterized by a smooth
 /// acceleration at the beginning and a gradual deceleration towards the
 /// end, providing a fluid user experience when interacting with scrollable
-/// content.
+/// content. The animation duration varies based on the source of the scroll
+/// events:
+///
+///  * For [ScrollType.programmatic], duration is shortest for small offsets
+///    and increases as the offset grows.
+///  * For [ScrollType.pointer], duration is longest for small offsets and
+///    decreases as the offset grows.
+///  * For [ScrollType.keyboard], the animation duration is constant.
 ///
 /// See also:
 ///
@@ -108,14 +137,26 @@ class ChromiumEaseInOut implements ScrollAnimationFactory {
   ScrollAnimation createScrollAnimation(
     final Offset initialValue,
     final Offset targetValue,
-  ) =>
-      _ChromiumScrollAnimation(
-        ScrollOffsetAnimationCurve.withDefaultTimingFunction(
-          targetValue: targetValue,
-          animationType: AnimationType.kEaseInOut,
-          durationBehavior: DurationBehavior.kInverseDelta,
-        )..SetInitialValue(initialValue, Duration.zero, 0),
-      );
+    final ScrollType scrollType,
+  ) {
+    DurationBehavior durationBehavior;
+    switch (scrollType) {
+      case ScrollType.programmatic:
+        durationBehavior = DurationBehavior.kDeltaBased;
+      case ScrollType.keyboard:
+        durationBehavior = DurationBehavior.kConstant;
+      case ScrollType.pointer:
+        durationBehavior = DurationBehavior.kInverseDelta;
+    }
+
+    return _ChromiumScrollAnimation(
+      ScrollOffsetAnimationCurve.withDefaultTimingFunction(
+        targetValue: targetValue,
+        animationType: AnimationType.kEaseInOut,
+        durationBehavior: durationBehavior,
+      )..SetInitialValue(initialValue, Duration.zero, 0),
+    );
+  }
 }
 
 /// A [ScrollAnimationFactory] that produces impulse-style animations,
@@ -139,6 +180,7 @@ class ChromiumImpulse implements ScrollAnimationFactory {
   ScrollAnimation createScrollAnimation(
     final Offset initialValue,
     final Offset targetValue,
+    final ScrollType scrollType,
   ) =>
       _ChromiumScrollAnimation(
         ScrollOffsetAnimationCurve.withDefaultTimingFunction(

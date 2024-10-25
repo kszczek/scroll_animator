@@ -67,6 +67,7 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
         animation: _animationFactory.createScrollAnimation(
           Offset(0.0, currentTarget),
           Offset(0.0, newTarget),
+          ScrollType.pointer,
         ),
         vsync: context.vsync,
         onDirectionChanged: updateUserScrollDirection,
