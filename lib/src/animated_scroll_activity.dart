@@ -73,6 +73,11 @@ class AnimatedScrollActivity extends ScrollActivity {
   }
 
   void _tick(final Duration elapsed) {
+    // TODO(kszczek): investigate if this check is really needed here
+    if (_isDisposed) {
+      return;
+    }
+
     final done = elapsed > _animation.duration;
     final offset = done ? _animation.targetValue : _animation.getValue(elapsed);
     final velocity = _animation.getVelocity(elapsed).dy;
@@ -86,7 +91,7 @@ class AnimatedScrollActivity extends ScrollActivity {
       }
     }
     final overscroll = delegate.setPixels(offset.dy);
-    if ((overscroll != 0.0 || done) && !_isDisposed) {
+    if (overscroll != 0.0 || done) {
       delegate.goIdle();
     }
   }
