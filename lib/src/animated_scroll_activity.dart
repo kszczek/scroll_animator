@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -18,16 +20,25 @@ class AnimatedScrollActivity extends ScrollActivity {
     final void Function(ScrollDirection)? onDirectionChanged,
   })  : _animation = animation,
         _startTime = DateTime.now(),
+        _completer = Completer<void>(),
         _onDirectionChanged = onDirectionChanged {
     _ticker = vsync.createTicker(_tick)..start();
   }
 
   final ScrollAnimation _animation;
   final DateTime _startTime;
+  final Completer<void> _completer;
   final void Function(ScrollDirection)? _onDirectionChanged;
   late final Ticker _ticker;
   ScrollDirection _lastScrollDirection = ScrollDirection.idle;
   bool _isDisposed = false;
+
+  /// A [Future] that completes when the activity stops.
+  ///
+  /// For example, this [Future] will complete if the animation reaches the end
+  /// or if the user interacts with the scroll view in way that causes the
+  /// animation to stop before it reaches the end.
+  Future<void> get done => _completer.future;
 
   /// Indicates whether the scroll animation has finished.
   ///
@@ -68,6 +79,7 @@ class AnimatedScrollActivity extends ScrollActivity {
   @override
   void dispose() {
     _isDisposed = true;
+    _completer.complete();
     _ticker.dispose();
     super.dispose();
   }
