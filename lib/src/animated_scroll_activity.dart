@@ -60,6 +60,7 @@ class AnimatedScrollActivity extends ScrollActivity {
   @override
   double get velocity => _animation.getVelocity(_elapsed).dy;
 
+  // TODO(kszczek): don't rely on dates and time as they might be unstable
   Duration get _elapsed => DateTime.now().difference(_startTime);
 
   @override
