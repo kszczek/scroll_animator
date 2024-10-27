@@ -91,8 +91,6 @@ class AnimatedScrollActivity extends ScrollActivity {
       return;
     }
 
-    final done = elapsed > _animation.duration;
-    final offset = done ? _animation.targetValue : _animation.getValue(elapsed);
     final velocity = _animation.getVelocity(elapsed).dy;
     final scrollDirection = velocity == 0
         ? ScrollDirection.idle
@@ -103,9 +101,17 @@ class AnimatedScrollActivity extends ScrollActivity {
         _onDirectionChanged?.call(scrollDirection);
       }
     }
+
+    final done = elapsed >= _animation.duration;
+    final offset = done ? _animation.targetValue : _animation.getValue(elapsed);
     final overscroll = delegate.setPixels(offset.dy);
-    if (overscroll != 0.0 || done) {
+    if (overscroll != 0.0) {
       delegate.goIdle();
+      return;
+    }
+
+    if (done) {
+      delegate.goBallistic(velocity);
     }
   }
 }
