@@ -8,6 +8,8 @@ export 'package:scroll_animator/src/animated_scroll_controller.dart'
     show AnimatedScrollController;
 export 'package:scroll_animator/src/animated_scroll_position.dart'
     show AnimatedScrollPosition;
+export 'package:scroll_animator/src/extensions/scrollable.dart'
+    show AnimatedScrollable;
 export 'package:scroll_animator/src/scroll_animation.dart'
     show
         ChromiumEaseInOut,

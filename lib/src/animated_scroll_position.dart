@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:scroll_animator/src/animated_scroll_activity.dart';
 import 'package:scroll_animator/src/animated_scroll_controller.dart';
 import 'package:scroll_animator/src/scroll_animation.dart';
+import 'package:scroll_animator/src/utils/curves.dart';
 
 /// A [ScrollPositionWithSingleContext] that animates pointer scroll deltas
 /// based on the [ScrollAnimation] provided by specified
@@ -40,6 +42,35 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
 
   final ScrollAnimationFactory _animationFactory;
   AnimatedScrollActivity? _activity;
+
+  @override
+  Future<void> animateTo(
+    final double to, {
+    required final Duration duration,
+    required final Curve curve,
+  }) {
+    if (curve is! ScrollAnimatorCurve) {
+      return super.animateTo(to, duration: duration, curve: curve);
+    }
+
+    if (nearEqual(to, pixels, physics.toleranceFor(this).distance)) {
+      // Skip the animation if we are close enough to the target
+      jumpTo(to);
+      return Future<void>.value();
+    }
+
+    final activity = AnimatedScrollActivity(
+      this,
+      animation: _animationFactory.createScrollAnimation(
+        Offset(0.0, pixels),
+        Offset(0.0, to),
+        ScrollType.programmatic,
+      ),
+      vsync: context.vsync,
+    );
+    beginActivity(activity);
+    return activity.done;
+  }
 
   @override
   void pointerScroll(final double delta) {
