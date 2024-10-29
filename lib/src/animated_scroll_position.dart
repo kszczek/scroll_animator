@@ -1,6 +1,5 @@
-import 'dart:math' as math;
+import 'dart:ui';
 
-import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:scroll_animator/src/animated_scroll_activity.dart';
 import 'package:scroll_animator/src/animated_scroll_controller.dart';
@@ -42,6 +41,7 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
 
   final ScrollAnimationFactory _animationFactory;
   AnimatedScrollActivity? _activity;
+  ScrollType? _activityScrollType;
 
   @override
   Future<void> animateTo(
@@ -53,13 +53,17 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
       return super.animateTo(to, duration: duration, curve: curve);
     }
 
-    if (nearEqual(to, pixels, physics.toleranceFor(this).distance)) {
-      // Skip the animation if we are close enough to the target
-      jumpTo(to);
-      return Future<void>.value();
+    final isActivityRunning = !(_activity?.isFinished ?? true);
+    final isProgrammaticActivity =
+        (_activityScrollType == ScrollType.programmatic);
+
+    if (isActivityRunning && isProgrammaticActivity) {
+      _activity!.targetValue = to;
+      return _activity!.done;
     }
 
-    final activity = AnimatedScrollActivity(
+    // TODO(kszczek): maintain velocity from previous activity of different type
+    _activity = AnimatedScrollActivity(
       this,
       animation: _animationFactory.createScrollAnimation(
         Offset(0.0, pixels),
@@ -68,8 +72,9 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
       ),
       vsync: context.vsync,
     );
-    beginActivity(activity);
-    return activity.done;
+    _activityScrollType = ScrollType.programmatic;
+    beginActivity(_activity);
+    return _activity!.done;
   }
 
   @override
@@ -79,33 +84,38 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
       return;
     }
 
-    final useCurrentOffsetAsCurrentTarget = _activity?.isFinished ?? true;
-    final currentTarget =
-        (useCurrentOffsetAsCurrentTarget ? pixels : _activity?.targetValue) ??
-            pixels;
-    final double newTarget = math.min(
-      math.max(currentTarget + delta, minScrollExtent),
+    final isActivityRunning = !(_activity?.isFinished ?? true);
+    final isPointerActivity = (_activityScrollType == ScrollType.pointer);
+    final target = (isActivityRunning && isPointerActivity)
+        ? _activity!.targetValue
+        : pixels;
+    final newTarget = clampDouble(
+      target + delta,
+      minScrollExtent,
       maxScrollExtent,
     );
 
-    if (newTarget == currentTarget) {
+    if (newTarget == target && (!isActivityRunning || isPointerActivity)) {
       return;
     }
 
-    if (_activity == null || _activity!.isFinished) {
-      _activity = AnimatedScrollActivity(
-        this,
-        animation: _animationFactory.createScrollAnimation(
-          Offset(0.0, currentTarget),
-          Offset(0.0, newTarget),
-          ScrollType.pointer,
-        ),
-        vsync: context.vsync,
-        onDirectionChanged: updateUserScrollDirection,
-      );
-      beginActivity(_activity);
-    } else {
+    if (isActivityRunning && isPointerActivity) {
       _activity!.targetValue = newTarget;
+      return;
     }
+
+    // TODO(kszczek): maintain velocity from previous activity of different type
+    _activity = AnimatedScrollActivity(
+      this,
+      animation: _animationFactory.createScrollAnimation(
+        Offset(0.0, target),
+        Offset(0.0, newTarget),
+        ScrollType.pointer,
+      ),
+      vsync: context.vsync,
+      onDirectionChanged: updateUserScrollDirection,
+    );
+    _activityScrollType = ScrollType.pointer;
+    beginActivity(_activity);
   }
 }
