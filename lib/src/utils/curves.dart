@@ -10,7 +10,10 @@ import 'package:scroll_animator/src/scroll_animation.dart';
 /// the actual animation curve from the associated [ScrollAnimationFactory].
 class ScrollAnimatorCurve extends Curve {
   /// Creates a constant curve that always returns `1.0`.
-  const ScrollAnimatorCurve();
+  const ScrollAnimatorCurve({required this.type});
+
+  /// Source of this scroll event.
+  final ScrollType type;
 
   @override
   double transform(final double t) => 1.0;

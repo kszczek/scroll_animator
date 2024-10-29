@@ -30,7 +30,7 @@ extension AnimatedScrollable on Scrollable {
         // A non-zero duration is necessary here to prevent
         // Scrollable.ensureVisible from returning an already completed future.
         duration: const Duration(microseconds: 1),
-        curve: const ScrollAnimatorCurve(),
+        curve: const ScrollAnimatorCurve(type: ScrollType.programmatic),
         alignmentPolicy: alignmentPolicy,
       );
 }

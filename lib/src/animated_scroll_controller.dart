@@ -44,7 +44,7 @@ class AnimatedScrollController extends ScrollController {
     return super.animateTo(
       offset,
       duration: duration ?? const Duration(microseconds: 1),
-      curve: curve ?? const ScrollAnimatorCurve(),
+      curve: curve ?? const ScrollAnimatorCurve(type: ScrollType.programmatic),
     );
   }
 

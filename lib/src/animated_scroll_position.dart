@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
@@ -54,10 +55,20 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
     }
 
     final isActivityRunning = !(_activity?.isFinished ?? true);
-    final isProgrammaticActivity =
-        (_activityScrollType == ScrollType.programmatic);
+    final isActivityMatchingType = (_activityScrollType == curve.type);
+    final target = (isActivityRunning && isActivityMatchingType)
+        ? _activity!.targetValue
+        : pixels;
 
-    if (isActivityRunning && isProgrammaticActivity) {
+    if (target == to) {
+      if (!isActivityRunning) {
+        return Future<void>.value();
+      } else if (isActivityMatchingType) {
+        return _activity!.done;
+      }
+    }
+
+    if (isActivityRunning && isActivityMatchingType) {
       _activity!.targetValue = to;
       return _activity!.done;
     }
@@ -68,11 +79,14 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
       animation: _animationFactory.createScrollAnimation(
         Offset(0.0, pixels),
         Offset(0.0, to),
-        ScrollType.programmatic,
+        curve.type,
       ),
       vsync: context.vsync,
+      onDirectionChanged: curve.type != ScrollType.programmatic
+          ? updateUserScrollDirection
+          : null,
     );
-    _activityScrollType = ScrollType.programmatic;
+    _activityScrollType = curve.type;
     beginActivity(_activity);
     return _activity!.done;
   }
@@ -95,27 +109,12 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
       maxScrollExtent,
     );
 
-    if (newTarget == target && (!isActivityRunning || isPointerActivity)) {
-      return;
-    }
-
-    if (isActivityRunning && isPointerActivity) {
-      _activity!.targetValue = newTarget;
-      return;
-    }
-
-    // TODO(kszczek): maintain velocity from previous activity of different type
-    _activity = AnimatedScrollActivity(
-      this,
-      animation: _animationFactory.createScrollAnimation(
-        Offset(0.0, target),
-        Offset(0.0, newTarget),
-        ScrollType.pointer,
+    unawaited(
+      animateTo(
+        newTarget,
+        duration: const Duration(microseconds: 1),
+        curve: const ScrollAnimatorCurve(type: ScrollType.pointer),
       ),
-      vsync: context.vsync,
-      onDirectionChanged: updateUserScrollDirection,
     );
-    _activityScrollType = ScrollType.pointer;
-    beginActivity(_activity);
   }
 }
