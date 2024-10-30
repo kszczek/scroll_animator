@@ -44,6 +44,40 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
   AnimatedScrollActivity? _activity;
   ScrollType? _activityScrollType;
 
+  /// Animates the position from its current value to the given value.
+  ///
+  /// When using a [curve] which is not an instance of [ScrollAnimatorCurve],
+  /// this method behaves like [ScrollPositionWithSingleContext.animateTo].
+  /// The following applies only when [curve] is a [ScrollAnimatorCurve].
+  ///
+  /// If there is an active scroll animation with a matching
+  /// [ScrollAnimatorCurve.type], then the target value for that animation will
+  /// be updated to the provided [to] offset. If there is no active scroll
+  /// animation, a new one will be initiated.
+  ///
+  /// The returned [Future] will complete when the animation ends, whether it
+  /// completed successfully or whether it was interrupted prematurely.
+  ///
+  /// An animation will be interrupted whenever the user attempts to scroll
+  /// manually, or whenever another activity is started, or whenever the
+  /// animation reaches the edge of the viewport and attempts to overscroll. (If
+  /// the [ScrollPosition] does not overscroll but instead allows scrolling
+  /// beyond the extents, then going beyond the extents will not interrupt the
+  /// animation.)
+  ///
+  /// The animation is indifferent to changes to the viewport or content
+  /// dimensions.
+  ///
+  /// Once the animation has completed, the scroll position will attempt to
+  /// begin a ballistic activity in case its value is not stable (for example,
+  /// if it is scrolled beyond the extents and in that situation the scroll
+  /// position would normally bounce back).
+  ///
+  /// For a [ScrollAnimatorCurve], the [duration] parameter is a placeholder and
+  /// has no effect on the actual animation duration. The duration is determined
+  /// by the [ScrollAnimation].
+  ///
+  /// The animation is typically handled by an [AnimatedScrollActivity].
   @override
   Future<void> animateTo(
     final double to, {
