@@ -44,6 +44,19 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
   AnimatedScrollActivity? _activity;
   ScrollType? _activityScrollType;
 
+  @override
+  void applyNewDimensions() {
+    super.applyNewDimensions();
+
+    // Take into account the new scroll extents, but only for pointer and
+    // keyboard scrolls, the programmatic scrolls should be indifferent to
+    // changes to the viewport or content dimensions.
+    if (_activityScrollType == ScrollType.pointer ||
+        _activityScrollType == ScrollType.keyboard) {
+      _relativeScroll(0.0, _activityScrollType!);
+    }
+  }
+
   /// Animates the position from its current value to the given value.
   ///
   /// When using a [curve] which is not an instance of [ScrollAnimatorCurve],
