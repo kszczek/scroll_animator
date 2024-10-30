@@ -95,6 +95,17 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
   /// new scroll animation based on the provided [delta] value.
   ///
   /// If an animation is already running from a previous [animateTo] or
+  /// [pointerScroll] call, it will be cancelled before starting the new one.
+  /// The [delta] value is clamped between the minimum and maximum scroll
+  /// extents, and the resulting scroll animation respects the boundary
+  /// conditions defined by the [ScrollPhysics].
+  void keyboardScroll(final double delta) =>
+      _relativeScroll(delta, ScrollType.keyboard);
+
+  /// Updates the target position of an active scroll animation or initiates a
+  /// new scroll animation based on the provided [delta] value.
+  ///
+  /// If an animation is already running from a previous [animateTo] or
   /// [keyboardScroll] call, it will be cancelled before starting the new one.
   /// The [delta] value is clamped between the minimum and maximum scroll
   /// extents, and the resulting scroll animation respects the boundary
