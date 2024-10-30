@@ -91,16 +91,28 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
     return _activity!.done;
   }
 
+  /// Updates the target position of an active scroll animation or initiates a
+  /// new scroll animation based on the provided [delta] value.
+  ///
+  /// If an animation is already running from a previous [animateTo] or
+  /// [keyboardScroll] call, it will be cancelled before starting the new one.
+  /// The [delta] value is clamped between the minimum and maximum scroll
+  /// extents, and the resulting scroll animation respects the boundary
+  /// conditions defined by the [ScrollPhysics].
+  ///
+  /// A [delta] of `0.0` is treated as an inertia cancel event, immediately
+  /// disposing of any velocity we've had and also, depending on the
+  /// [ScrollPhysics], causes the scroll position to settle within scroll
+  /// extents.
   @override
-  void pointerScroll(final double delta) {
-    if (delta == 0.0) {
-      goBallistic(0.0);
-      return;
-    }
+  void pointerScroll(final double delta) => (delta == 0.0)
+      ? goBallistic(0.0)
+      : _relativeScroll(delta, ScrollType.pointer);
 
+  void _relativeScroll(final double delta, final ScrollType scrollType) {
     final isActivityRunning = !(_activity?.isFinished ?? true);
-    final isPointerActivity = (_activityScrollType == ScrollType.pointer);
-    final target = (isActivityRunning && isPointerActivity)
+    final isActivityMatchingType = (_activityScrollType == scrollType);
+    final target = (isActivityRunning && isActivityMatchingType)
         ? _activity!.targetValue
         : pixels;
     final newTarget = clampDouble(
@@ -113,7 +125,7 @@ class AnimatedScrollPosition extends ScrollPositionWithSingleContext {
       animateTo(
         newTarget,
         duration: const Duration(microseconds: 1),
-        curve: const ScrollAnimatorCurve(type: ScrollType.pointer),
+        curve: ScrollAnimatorCurve(type: scrollType),
       ),
     );
   }
