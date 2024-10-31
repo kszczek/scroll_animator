@@ -1,5 +1,5 @@
-A Flutter package that provides smooth, animated scrolling for pointer-based
-input devices, such as mouse wheels and trackpads. It includes some widely used
+A Flutter package that provides smooth, animated scrolling for mouse wheels,
+trackpads, keyboards and programmatic scrolls. It includes some widely used
 scroll animations that can be used out of the box, while also offering
 the flexibility to implement custom scroll animations.
 

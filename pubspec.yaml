@@ -1,6 +1,6 @@
 name: "scroll_animator"
 version: "0.2.0"
-description: "A Flutter package that provides smooth, animated scrolling for pointer-based input devices, such as mouse wheels and trackpads."
+description: "A Flutter package that provides smooth, animated scrolling for mouse wheels, trackpads, keyboards and programmatic scrolls."
 repository: "https://github.com/kszczek/scroll_animator"
 issue_tracker: "https://github.com/kszczek/scroll_animator/issues"
 
