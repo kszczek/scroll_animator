@@ -7,11 +7,15 @@ the flexibility to implement custom scroll animations.
 
 ## Usage
 
-To use this package, create an instance of `AnimatedScrollController` with your
-preferred `ScrollAnimation` factory, and pass it to your scrollable widget.
+This example application exhaustively demonstrates the features provided by
+the package:
 
 ```dart
+import 'dart:math';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:scroll_animator/scroll_animator.dart';
 
 void main() => runApp(const ExampleApp());
@@ -21,41 +25,113 @@ class ExampleApp extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) => MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(title: const Text('Scroll Animator Example')),
-          body: _ScrollAnimatorExample(),
-        ),
-      );
-}
+        // By default, Flutter provides platform-specific scroll shortcuts,
+        // defined in WidgetsApp.defaultShortcuts. To customize these shortcuts,
+        // use the shortcuts parameter as shown here.
+        shortcuts: {
+          ...WidgetsApp.defaultShortcuts,
+          const SingleActivator(LogicalKeyboardKey.keyW):
+              const ScrollIntent(direction: AxisDirection.up),
+          const SingleActivator(LogicalKeyboardKey.keyS):
+              const ScrollIntent(direction: AxisDirection.down),
+          const SingleActivator(LogicalKeyboardKey.keyA):
+              const ScrollIntent(direction: AxisDirection.left),
+          const SingleActivator(LogicalKeyboardKey.keyD):
+              const ScrollIntent(direction: AxisDirection.right),
+        },
 
-class _ScrollAnimatorExample extends StatefulWidget {
-  @override
-  _ScrollAnimatorExampleState createState() => _ScrollAnimatorExampleState();
-}
+        // By default, MaterialApp and CupertinoApp map ScrollIntent to
+        // ScrollAction, which applies a fixed ease-in-out curve and 100ms
+        // duration. To use custom scroll animations with dynamic parameters,
+        // which this package provides, map ScrollIntent to
+        // AnimatedScrollAction in the actions property as shown here.
+        actions: {
+          ...WidgetsApp.defaultActions,
+          ScrollIntent: AnimatedScrollAction(),
+        },
 
-class _ScrollAnimatorExampleState extends State<_ScrollAnimatorExample> {
-  late final ScrollController _scrollController;
+        // This widget provides a default scroll controller for all of its
+        // descendants. This has two main advantages.
+        //
+        //  1. We don't have to instantiate and manage a scroll controller
+        //     by ourselves, which usually causes some pain, becuase we have
+        //     to create a stateful widget to contain the aforementioned
+        //     scroll controller. This wrapper does all of this for us.
+        //
+        //  2. This is required for keyboard scrolling to work. That's
+        //     because the AnimatedScrollAction will be invoked with the
+        //     context of the Focus widget which captured the key press
+        //     and then that scroll action will go up the tree looking for
+        //     the closest scrollable widget or closest primary scroll
+        //     controller. Although the MaterialApp and CupertinoApp both
+        //     have their own primary scroll controllers, they are backed by
+        //     a regular ScrollController and not an AnimatedScrollController.
+        //
+        // As a rule of thumb you should try to use this widget sparingly.
+        // Enclosing entire routes with it is a common pattern, but it might
+        // cause an issue if you have multiple scrollable widgets making use
+        // of the primary scroll controller on a single page. In that case
+        // you might see an error that the AnimatedScrollAction doesn't know
+        // which scrollable to deliver the event to. In that case it's
+        // recommended to provide a primary scroll controller for each
+        // sub-tree which contains a scrollable widget.
+        home: AnimatedPrimaryScrollController(
+          animationFactory: const ChromiumEaseInOut(),
+          child: Builder(
+            builder: (final context) => Scaffold(
+              appBar: AppBar(title: const Text('Scroll Animator Example')),
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = AnimatedScrollController(
-      animationFactory: const ChromiumEaseInOut(),
-    );
-  }
+              // With an AnimatedScrollController, you don't have to provide
+              // neither the curve nor duration of the animation. Both of these
+              // parameters will be automatically determined based on the
+              // distance to scroll. The AnimatedScrollController also has
+              // another advantage over the regular ScrollController. You can
+              // see that if you press the button repeatedly, the animation
+              // remains smooth even though the target keeps changing.
+              floatingActionButton: FloatingActionButton(
+                child: const Icon(Icons.question_mark),
+                onPressed: () {
+                  final scrollController = PrimaryScrollController.of(context);
+                  final offset = lerpDouble(
+                    scrollController.position.minScrollExtent,
+                    scrollController.position.maxScrollExtent,
+                    Random().nextDouble(),
+                  );
+                  if (scrollController is AnimatedScrollController) {
+                    scrollController.animateTo(offset ?? 0.0);
+                  } else {
+                    scrollController.animateTo(
+                      offset ?? 0.0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+              ),
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(final BuildContext context) => ListView.builder(
-        controller: _scrollController,
-        itemCount: 100,
-        itemBuilder: (final context, final index) => ListTile(
-          title: Text('Item $index'),
+              // We need to enclose our scrollable widget with a focus widget to
+              // enable scrolling using keyboard shortcuts. Why do we need it?
+              // You could imagine a scenario on a regular web page made using
+              // traditional technologies like HTML where you have multiple
+              // scrollable elements on a single page. When your user presses the
+              // arrow keys, which of them should be scrolled? This question is
+              // answered by: well, whichever of them is currently in focus.
+              // For example, a user might click a given scrollable element to put
+              // focus on it and then use arrows to scroll it, then click another
+              // scrollable, thus moving focus to it. We want to implement this
+              // behavior, and we do so by wrapping our scrollable widgets in
+              // focus widgets.
+              body: Focus(
+                autofocus: true,
+                child: ListView.builder(
+                  itemCount: 100,
+                  itemBuilder: (final context, final index) => ListTile(
+                    title: Text('Item $index'),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       );
 }
