@@ -1,6 +1,13 @@
+## 0.3.0
+
+* feat: allow updating the target of a programmatic scroll animation
+* feat: implement scrolling using arrows or pg-up/down keys
+* feat: update scroll target when scrollable changes dimensions
+* feat: implement a primary scroll controller wrapper for convenience
+* docs: make the example code in README more exhaustive
+
 ## 0.2.0
 
-* feat: enumerate types of scroll event sources
 * fix: settle scroll position when the animation is done
 * feat: implement programmatic scrolls with automatic animation parameters
 
