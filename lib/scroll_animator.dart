@@ -2,6 +2,8 @@
 /// input devices, such as mouse wheels and trackpads.
 library;
 
+export 'package:scroll_animator/src/animated_primary_scroll_controller.dart'
+    show AnimatedPrimaryScrollController;
 export 'package:scroll_animator/src/animated_scroll_action.dart'
     show AnimatedScrollAction;
 export 'package:scroll_animator/src/animated_scroll_activity.dart'
